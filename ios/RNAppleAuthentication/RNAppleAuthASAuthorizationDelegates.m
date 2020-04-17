@@ -16,7 +16,7 @@
  */
 
 #import "RNAppleAuthASAuthorizationDelegates.h"
-
+#import "NSDictionary+RNKeychainItem.h"
 
 @implementation RNAppleAuthASAuthorizationDelegates
 
@@ -92,6 +92,25 @@
     }];
   }
 
+  NSDictionary *keychainObject = [NSDictionary objectFromKeychainWithKey:appleIdCredential.user];
+  NSString *email = appleIdCredential.email;
+  if (keychainObject && [[fullName valueForKey:@"givenName"] class] == [NSNull class] && !email) {
+      if ([[fullName valueForKey:@"givenName"] class] == [NSNull class]) {
+          fullName = [keychainObject valueForKey:@"fullName"];
+      }
+      if (!email) {
+          email = [keychainObject valueForKey:@"fullName"];
+      }
+  } else if([fullName valueForKey:@"givenName"] || email) {
+      NSDictionary *userDetailObj = @{
+          @"fullName": fullName ? fullName : nil,
+          @"email": email ? email : nil
+      };
+      [userDetailObj saveObjectFromKeychainWithKey:appleIdCredential.user];
+  }
+  
+  
+    
   return @{
       @"nonce": _nonce,
       @"user": appleIdCredential.user,
@@ -99,7 +118,7 @@
       @"realUserStatus": @(appleIdCredential.realUserStatus),
       @"authorizedScopes": appleIdCredential.authorizedScopes,
       @"identityToken": identityToken ? identityToken : (id) [NSNull null],
-      @"email": appleIdCredential.email ? appleIdCredential.email : (id) [NSNull null],
+      @"email": email ? email : (id) [NSNull null],
       @"state": appleIdCredential.state ? appleIdCredential.state : (id) [NSNull null],
       @"authorizationCode": authorizationCode ? authorizationCode : (id) [NSNull null],
   };
