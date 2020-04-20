@@ -91,20 +91,23 @@
       }
     }];
   }
+    
+    
 
   NSDictionary *keychainObject = [NSDictionary objectFromKeychainWithKey:appleIdCredential.user];
   NSString *email = appleIdCredential.email;
+    
   if (keychainObject && [[fullName valueForKey:@"givenName"] class] == [NSNull class] && !email) {
       if ([[fullName valueForKey:@"givenName"] class] == [NSNull class]) {
           fullName = [keychainObject valueForKey:@"fullName"];
       }
       if (!email) {
-          email = [keychainObject valueForKey:@"fullName"];
+          email = [keychainObject valueForKey:@"email"];
       }
   } else if([fullName valueForKey:@"givenName"] || email) {
       NSDictionary *userDetailObj = @{
-          @"fullName": fullName ? fullName : nil,
-          @"email": email ? email : nil
+          @"fullName": fullName ? fullName : [NSNull null],
+          @"email": email ? email : [NSNull null]
       };
       [userDetailObj saveObjectFromKeychainWithKey:appleIdCredential.user];
   }
